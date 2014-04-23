@@ -1,0 +1,29 @@
+{
+  "name": "oanda-exchange-rates",
+  "version": "0.0.0",
+  "description": "OANDA Exchange Rates API client module for nodejs",
+  "homepage": "http://http://developer.oanda.com/exchange-rates-api/",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter nyan"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oanda/nodejs-exchange-rates"
+  },
+  "keywords": [
+    "OANDA",
+    "Forex",
+    "Exchange",
+    "Rates"
+  ],
+  "author": "Jerome Lecomte <jerome@oanda.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oanda/nodejs-exchange-rates/issues"
+  },
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "mocha": "~1.18.2"
+  }
+}
