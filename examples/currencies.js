@@ -13,5 +13,8 @@ client.getCurrencies(function(res) {
   if (res.success) {
     console.log('data =', res.data);
     console.log('raw json =', res.raw);
+  } else {
+    console.log('error(' + res.errorCode + '):', res.errorMessage);
+    console.log('raw json =', res.raw);
   }
 })

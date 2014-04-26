@@ -18,27 +18,58 @@ ExchangeRates.prototype.getCurrencies = function(callback) {
   };
 
   https.get(options, function(httpRes) {
+    var apiRes = {
+      statusCode: httpRes.statusCode
+    };
+    var data = '';
+
+    // buffer response data until it has arrived completely
+    httpRes.on('data', function(chunk) {
+      // chunk either a string or a Buffer
+      if (Buffer.isBuffer(chunk)) {
+        chunk = chunk.toString();
+      }
+      // now chunk always a string
+      data += chunk;
+    });
+
     if (httpRes.statusCode === 200) {
-      httpRes.on('data', function(data) {
-        // data either a string or a Buffer
-        if (Buffer.isBuffer(data)) {
-          data = data.toString();
-        }
-        // now data always a string
-
+      // entire response data has arrived and ready to be parsed
+      httpRes.on('end', function() {
+        apiRes.raw = data;
         currencyMap = {};
-        currencyList = JSON.parse(data).currencies;
-        for (var i = 0; i < currencyList.length; i++) {
-          var currency = currencyList[i];
-          currencyMap[currency.code] = currency.description;
+
+        try {
+          currencyList = JSON.parse(data).currencies;
+          for (var i = 0; i < currencyList.length; i++) {
+            var currency = currencyList[i];
+            currencyMap[currency.code] = currency.description;
+          }
+
+          apiRes.data = currencyMap;
+          apiRes.success = true
+        } catch (e) {
+          apiRes.errorMessage = 'Unable to parse JSON data: ' + e.message;
+          apiRes.success = false;
         }
 
-        apiRes = {
-          data: {
-            currencies: currencyMap
-          },
-          raw: data,
-          success: true
+        if (callback != null) {
+          callback(apiRes);
+        }
+      });
+    } else {
+      // entire error data has arrived and ready to be parsed
+      httpRes.on('end', function() {
+        apiRes.raw = data;
+        apiRes.success = false;
+
+        try {
+          var error = JSON.parse(data);
+
+          apiRes.errorCode = error.code;
+          apiRes.errorMessage = error.message;
+        } catch (e) {
+          apiRes.errorMessage = 'Unable to parse JSON data: ' + e.message;
         }
 
         if (callback != null) {
