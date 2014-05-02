@@ -1,11 +1,111 @@
-var should = require('chai').should(),
-    sinon = require('sinon'),
-    https = require('https')
-    OANDAExchangeRates = require('../index');
+var https = require('https'),
+    OANDAExchangeRates = require('../index'),
+    should = require('should'),
+    sinon = require('sinon');
 
 describe('OANDA Exchange Rates API', function() {
 
   describe('getCurrencies()', function() {
+
+    describe('when using a proxy URL', function() {
+      var proxySpy = sinon.spy();
+
+      before(function() {
+        // Arrange
+        sinon.spy(https, 'get')
+
+        var client = new OANDAExchangeRates({
+          api_key: '42',
+          proxy: 'http://proxy:8080'
+        });
+
+        client.__proto__._makeProxy = proxySpy;
+
+        // Act
+        client.getCurrencies();
+      });
+      // Assert
+      it('makes a HTTPS GET request', function() {
+        https.get.callCount.should.equal(1);
+      });
+      it('sends the API\'s base URL as hostname', function() {
+        https.get.firstCall.args[0].should.have.property('hostname', 'www.oanda.com');
+      });
+      it('sends the currencies endpoint as path', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/currencies.json');
+      });
+      it('sends the API_key as Authorization header', function() {
+        https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
+      });
+      it('sends the module name and version as User-Agent header', function() {
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.0.0');
+      });
+      it('sends a proxy agent as agent', function() {
+        https.get.firstCall.args[0].should.have.property('agent');
+      });
+      it('creates a proxy agent', function() {
+        proxySpy.callCount.should.equal(1);
+      });
+      it('passes a proxy URL to the proxy agent', function() {
+        proxySpy.firstCall.args[0].should.equal('http://proxy:8080');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+      });
+    });
+
+    describe('when http_proxy variable is set in the environment', function() {
+      var proxySpy = sinon.spy();
+
+      before(function() {
+        // Arrange
+        sinon.spy(https, 'get')
+
+        process.env.http_proxy = 'http://proxy:8080';
+
+        var client = new OANDAExchangeRates({
+          api_key: '42'
+        });
+
+        client.__proto__._makeProxy = proxySpy;
+
+        // Act
+        client.getCurrencies();
+      });
+      // Assert
+      it('makes a HTTP GET request', function() {
+        https.get.callCount.should.equal(1);
+      });
+      it('sends the API\'s base URL as hostname', function() {
+        https.get.firstCall.args[0].should.have.property('hostname', 'www.oanda.com');
+      });
+      it('sends the currencies endpoint as path', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/currencies.json');
+      });
+      it('sends the API_key as Authorization header', function() {
+        https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
+      });
+      it('sends the module name and version as User-Agent header', function() {
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.0.0');
+      });
+      it('sends a proxy agent as agent', function() {
+        https.get.firstCall.args[0].should.have.property('agent');
+      });
+      it('creates a proxy agent', function() {
+        proxySpy.callCount.should.equal(1);
+      });
+      it('passes the proxy URL to the proxy agent', function() {
+        proxySpy.firstCall.args[0].should.equal('http://proxy:8080');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+        delete process.env.http_proxy
+      });
+    });
 
     describe('when using the API base URL', function() {
 

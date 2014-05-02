@@ -53,7 +53,14 @@ All API methods return a [Response](#response) object that provides access to th
 The constructor for the API wrapper. Other than `api_key` all other parameters are optional.
 
 - options:
-  - api_key (**required**): the API key provided by the service
+  - api_key
+
+      **required**: the API key provided by the service
+  - proxy
+
+          proxy: 'http://your.proxy.com:8080/'
+
+      If you access the service behind a proxy, you can provide it. This sets the proxy for the underlying HTTP client. Similarly, if the `http_proxy` environment variable is set with the proxy, it will be use automatically.
 
 #### <a name="get_currencies"></a>client.getCurencies(\[callback\])
 
@@ -77,12 +84,30 @@ The Javascript object returned by `response.data` will look something like this:
 This object is returned by any API method called in [OANDAExchangeRates](#oanda_exchange_rates). It automatically deserializes the data into a native Javascript object and provides information about the response.
 
 - Fields:
-  - data: contains the deserialized Javascript object of the API
-  - errorCode: if the request failed, contains the error code of the problem (see also [List of Errors](http://developer.oanda.com/exchange-rates-api/#errors_list))
-  - errorMessage: if the request failed, contains a description of the problem
-  - statusCode: HTTP status code
-  - raw: contains the raw serialized JSON data returned by the API
-  - success: boolean flag indicating whether the request was successful or not
+  - data
+
+      Contains the deserialized Javascript object of the API
+
+  - errorCode
+
+      If the request failed due to an API error, contains the error code of the problem (see also [List of Errors](http://developer.oanda.com/exchange-rates-api/#errors_list))
+      If the request failed due to a network error (connection lost, malformed JSON data), it will not be set
+
+  - errorMessage
+
+      If the request failed, contains a description of the problem
+
+  - statusCode
+
+      HTTP status code
+
+  - raw
+  
+      Contains the raw serialized JSON data returned by the API
+
+  - success
+  
+      Boolean flag indicating whether the request was successful or not
 
 
 ## <a name="tests"></a>Tests

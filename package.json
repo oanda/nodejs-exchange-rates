@@ -2,7 +2,7 @@
   "name": "oanda-exchange-rates",
   "version": "0.0.0",
   "description": "OANDA Exchange Rates API client module for nodejs",
-  "homepage": "http://http://developer.oanda.com/exchange-rates-api/",
+  "homepage": "http://github.com/oanda/nodejs-exchange-rates",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter nyan"
@@ -23,8 +23,11 @@
     "url": "https://github.com/oanda/nodejs-exchange-rates/issues"
   },
   "devDependencies": {
-    "chai": "~1.9.1",
     "mocha": "~1.18.2",
+    "should": "^3.3.1",
     "sinon": "^1.9.1"
+  },
+  "dependencies": {
+    "https-proxy-agent": "^0.3.4"
   }
 }

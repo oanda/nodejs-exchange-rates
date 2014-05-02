@@ -1,20 +1,30 @@
+var proxyAgent = require('https-proxy-agent');
+var url = require('url');
 var https = require('https');
 
 
 var ExchangeRates = function ExchangeRates(options) {
-  this.options = options || {
-    api_key: ''
-  };
+  options = options || {};
+  this.api_key = options.api_key || '';
+  this.proxy = options.proxy || process.env.http_proxy;
 };
+
+ExchangeRates.prototype._makeProxy = function(url) {
+  return new proxyAgent(url)
+}
 
 ExchangeRates.prototype.getCurrencies = function(callback) {
   var options = {
     hostname: 'www.oanda.com',
     headers: {
-      Authorization: 'Bearer ' + this.options.api_key,
+      Authorization: 'Bearer ' + this.api_key,
       'User-Agent': 'oanda-exchange-rates.js/0.0.0'
     },
     path: '/rates/api/v1/currencies.json'
+  };
+
+  if (this.proxy) {
+    options.agent = this._makeProxy(this.proxy);
   };
 
   https.get(options, function(httpRes) {
