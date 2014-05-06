@@ -7,6 +7,7 @@ This module provides a simple wrapper around the [OANDA Exchange Rates API](http
   - [Class: OANDAExchangeRates](#oanda_exchange_rates)
     - [new OANDAExchangeRates(options)](#constructor)
     - [client.getCurrencies(\[callback\])](#get_currencies)
+    - [client.getRates(options, \[callback\])](#get_rates)
     - [client.getRemainingQuotes(\[callback\])](#get_remaining_quotes)
 - [Tests](#tests)
 - [Author](#author)
@@ -35,6 +36,22 @@ client.getCurrencies(function(response) {
     }
 });
 
+client.getRates('USD', function(response) {
+    if (response.success) {
+        console.log('daily average USD/GBP:', response.data.quotes.GBP.midpoint);
+    } else {
+        console.log('error(', response.errorCode, ')', response.errorMessage);
+    }
+});
+
+client.getRates({ base: 'EUR', quote: 'CAD', date: '2014-01-01' }, function(response) {
+    if (response.success) {
+        console.log('daily average EUR/CAD on Jan 1st 2014:', response.data.quotes.CAD.midpoint);
+    } else {
+        console.log('error(', response.errorCode, ')', response.errorMessage);
+    }
+});
+
 client.getRemainingQuotes(function(response) {
     if (response.success) {
         console.log('Can call getRates()', response.data.remaining_quotes, 'time(s)');
@@ -47,6 +64,8 @@ client.getRemainingQuotes(function(response) {
 If successful, will output:
 
     USD=US Dollar
+    Daily average USD/GBP: 0.60365
+    Daily average EUR/CAD on Jan 1st 2014: 1.46537
     Can call getRates() 100000 time(s)
 
 If not, for example:
@@ -88,6 +107,131 @@ The Javascript object returned by `response.data` will look something like this:
     ...
 }
 ```
+
+#### <a name="get_rates"></a>client.getRates(options, \[callback\])
+
+Returns the `/v1/rates/XXX.json` endpoint; a list of quotes for a specific base currency.
+
+This is the core of the API and provides daily averages, highs, lows and
+idpoints for a each cross of currencies.
+
+The Javascript object returned by `response.data` will look something like this --- Please see the [OANDA Exchange Rates API Docs](http://developer.oanda.com/exchange-rates-api) for a detailed breakdown:
+
+```Javascript
+{
+  "quotes": {
+    "GBP": {
+      "midpoint": "0.60365",
+      "low_bid": "0.60360",
+      "low_ask": "0.60369",
+      "high_bid": "0.60360",
+      "high_ask": "0.60369",
+      "date": "2014-01-01T21:00:00+0000",
+      "bid": "0.60360",
+      "ask": "0.60369"
+    },
+    "EUR": {
+      "midpoint": "0.72527",
+      "low_bid": "0.72522",
+      "low_ask": "0.72533",
+      "high_bid": "0.72522",
+      "high_ask": "0.72533",
+      "date": "2014-01-01T21:00:00+0000",
+      "bid": "0.72522",
+      "ask": "0.72533"
+    }
+  },
+  "meta": {
+    "skipped_currencies": [],
+    "request_time": "2014-05-06T19:23:14+0000",
+    "effective_params": {
+      "quote_currencies": [
+        "EUR",
+        "GBP"
+      ],
+      "fields": [
+        "averages",
+        "highs",
+        "lows",
+        "midpoint"
+      ],
+      "decimal_places": 5,
+      "date": "2014-01-01"
+    }
+  },
+  "base_currency": "USD"
+}
+```
+
+`options` can either be an object or a string. If `options` is a string it will be used as the `base` currency parameter.
+
+- options:
+  - base
+
+      **REQUIRED** - The base currency that all quotes are crossed against. Must be a valid
+      3 letter upper case currency code as provided by `/v1/currencies.json` endpoint.
+
+          base: 'USD'
+
+  - quote
+
+      A single currency code, or an array of currency codes to cross against the
+      base currency.
+
+      **DEFAULT:** All other available currencies.
+
+          quote: 'EUR'
+          quote: [ 'EUR', 'GBP', 'CHF' ]
+
+  - decimal_places
+
+      The number of decimal places to provide in the quote. May be a positive integer
+      of reasonable size (as of this writing, up to 14) or the string "all".  Quotes
+      that are requested with more precision than exist are padded out with zero's.
+
+      **DEFAULT:** 5
+
+          decimal_places: 'all'
+
+  - fields
+
+      Which fields to return in the quotes.  These can currently be:
+
+      - averages - the bid and ask
+      - midpoint - the midpoint between the bid and ask
+      - highs - the highest bid and ask
+      - lows - the lowest bid and ask
+      - all - all of the above
+
+      **DEFAULT:** averages
+
+  - date
+
+      The requested date for the quotes. This must be in YYYY-MM-DD format. The
+      24 hour period of the date is considered to be that period in UTC.
+
+      **DEFAULT:** The most recent quote
+
+          date: '2014-02-01'
+
+  - start, end
+
+      This allows you to specify a date range. Also in YYYY-MM-DD format. When
+      requesting a date range, quotes are modified such that:
+
+      - averages (bid and ask) are the average of the daily values over the date range
+      - midpoint (midpoint) is the midpoint between those averages
+      - highs (high\_ask and high\_bid) are the highest values over the range
+      - lows (low\_ask and low\_bid) are the lowest values over the range
+
+      Specifying no `end` will assume today's date as the end point. Date ranges are
+      inclusive (they include all quotes on and between `start` and `end`).
+
+      **DEFAULT:** none
+
+          start: '2014-01-01',
+          end: '2014-01-31'
+
 
 #### <a name="get_remaining_quotes"></a>client.getRemainingQuotes(\[callback\])
 

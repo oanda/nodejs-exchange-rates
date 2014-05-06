@@ -52,7 +52,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].should.have.property('hostname', 'www.oanda.com');
       });
       it('sends the endpoint as path', function() {
-        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint.json');
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint');
       });
       it('sends the API_key as Authorization header', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
@@ -102,7 +102,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].should.have.property('hostname', 'www.oanda.com');
       });
       it('sends the endpoint as path', function() {
-        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint.json');
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint');
       });
       it('sends the API_key as Authorization header', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
@@ -149,7 +149,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].should.have.property('hostname', 'www.oanda.com');
       });
       it('sends the endpoint as path', function() {
-        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint.json');
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/endpoint');
       });
       it('sends the API_key as Authorization header', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
@@ -452,4 +452,187 @@ describe('OANDA Exchange Rates API', function() {
       https.get.restore();
     });
   });
+
+  
+  describe('getRates', function() {
+
+    describe('when only the base currency is passed', function() {
+      var callback = sinon.spy();
+
+      before(function() {
+          // Arrange
+          sinon.stub(https, 'get').yields(
+            _createResponse(200, '{"quotes":{"CAD":{"date":"2014-05-05T21:00:00+0000","bid":"1.09681","ask":"1.09702"}},"meta":{"skipped_currencies":[],"request_time":"2014-05-06T18:27:56+0000","effective_params":{"quote_currencies":["CAD"],"fields":["averages"],"decimal_places":5,"date":"2014-05-06"}},"base_currency":"USD"}', callback)
+          );
+
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
+
+          // Act
+          client.getRates('USD', callback);
+      });
+
+      // Assert
+      it('sends the base currency as path', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/rates/USD.json');
+      });
+
+      it('calls our callback', function() {
+        callback.callCount.should.equal(1);
+      });
+      it('passes a success flag back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('success', true);
+      });
+      it('passes the HTTP status code back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('statusCode', 200);
+      });
+      it('passes a hash of rates data back to our callback', function() {
+        callback.firstCall.args[0].data.should.be.eql({
+          "quotes": {
+            "CAD": {
+              "date": "2014-05-05T21:00:00+0000",
+              "bid": "1.09681",
+              "ask": "1.09702"
+            }
+          },
+          "meta": {
+            "skipped_currencies": [],
+            "request_time": "2014-05-06T18:27:56+0000",
+            "effective_params": {
+              "quote_currencies": [
+                "CAD"
+              ],
+              "fields": [
+                "averages"
+              ],
+              "decimal_places": 5,
+              "date": "2014-05-06"
+            }
+          },
+          "base_currency": "USD"
+        });
+      });
+      it('passes the raw serialized JSON back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('raw', '{"quotes":{"CAD":{"date":"2014-05-05T21:00:00+0000","bid":"1.09681","ask":"1.09702"}},"meta":{"skipped_currencies":[],"request_time":"2014-05-06T18:27:56+0000","effective_params":{"quote_currencies":["CAD"],"fields":["averages"],"decimal_places":5,"date":"2014-05-06"}},"base_currency":"USD"}');
+      });
+      it('passes the number of remaining quote any error code back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorCode');
+      });
+      it('does not pass any error code back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorCode');
+      });
+      it('does not pass any error message back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorMessage');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+      });
+    });
+
+    describe('when optional parameters are passed', function() {
+      var callback = sinon.spy();
+
+      before(function() {
+          // Arrange
+          sinon.stub(https, 'get').yields(
+            _createResponse(200, '{"quotes":{"GBP":{"midpoint":"0.60365","low_bid":"0.60360","low_ask":"0.60369","high_bid":"0.60360","high_ask":"0.60369","date":"2014-01-01T21:00:00+0000","bid":"0.60360","ask":"0.60369"},"EUR":{"midpoint":"0.72527","low_bid":"0.72522","low_ask":"0.72533","high_bid":"0.72522","high_ask":"0.72533","date":"2014-01-01T21:00:00+0000","bid":"0.72522","ask":"0.72533"}},"meta":{"skipped_currencies":[],"request_time":"2014-05-06T18:50:57+0000","effective_params":{"quote_currencies":["EUR","GBP"],"fields":["averages","highs","lows","midpoint"],"decimal_places":5,"date":"2014-01-01"}},"base_currency":"USD"}', callback)
+          );
+
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
+
+          var params = {
+            base: 'USD',
+            quote: ['EUR', 'GBP'],
+            fields: 'all',
+            date: '2014-01-01'
+          }
+
+          // Act
+          client.getRates(params, callback);
+      });
+
+      // Assert
+      it('sends the base currency and query string as path', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/rates/USD.json?quote=EUR&quote=GBP&fields=all&date=2014-01-01');
+      });
+
+      it('calls our callback', function() {
+        callback.callCount.should.equal(1);
+      });
+      it('passes a success flag back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('success', true);
+      });
+      it('passes the HTTP status code back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('statusCode', 200);
+      });
+      it('passes a hash of rates back to our callback', function() {
+        callback.firstCall.args[0].data.should.be.eql({
+          "quotes": {
+            "GBP": {
+              "midpoint": "0.60365",
+              "low_bid": "0.60360",
+              "low_ask": "0.60369",
+              "high_bid": "0.60360",
+              "high_ask": "0.60369",
+              "date": "2014-01-01T21:00:00+0000",
+              "bid": "0.60360",
+              "ask": "0.60369"
+            },
+            "EUR": {
+              "midpoint": "0.72527",
+              "low_bid": "0.72522",
+              "low_ask": "0.72533",
+              "high_bid": "0.72522",
+              "high_ask": "0.72533",
+              "date": "2014-01-01T21:00:00+0000",
+              "bid": "0.72522",
+              "ask": "0.72533"
+            }
+          },
+          "meta": {
+            "skipped_currencies": [],
+            "request_time": "2014-05-06T18:50:57+0000",
+            "effective_params": {
+              "quote_currencies": [
+                "EUR",
+                "GBP"
+              ],
+              "fields": [
+                "averages",
+                "highs",
+                "lows",
+                "midpoint"
+              ],
+              "decimal_places": 5,
+              "date": "2014-01-01"
+            }
+          },
+          "base_currency": "USD"
+        });
+      });
+      it('passes the raw serialized JSON back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('raw', '{"quotes":{"GBP":{"midpoint":"0.60365","low_bid":"0.60360","low_ask":"0.60369","high_bid":"0.60360","high_ask":"0.60369","date":"2014-01-01T21:00:00+0000","bid":"0.60360","ask":"0.60369"},"EUR":{"midpoint":"0.72527","low_bid":"0.72522","low_ask":"0.72533","high_bid":"0.72522","high_ask":"0.72533","date":"2014-01-01T21:00:00+0000","bid":"0.72522","ask":"0.72533"}},"meta":{"skipped_currencies":[],"request_time":"2014-05-06T18:50:57+0000","effective_params":{"quote_currencies":["EUR","GBP"],"fields":["averages","highs","lows","midpoint"],"decimal_places":5,"date":"2014-01-01"}},"base_currency":"USD"}');
+      });
+      it('passes the number of remaining quote any error code back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorCode');
+      });
+      it('does not pass any error code back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorCode');
+      });
+      it('does not pass any error message back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorMessage');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+      });
+    });
+  });
+ 
 });

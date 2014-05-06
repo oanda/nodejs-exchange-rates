@@ -1,6 +1,7 @@
-var proxyAgent = require('https-proxy-agent');
-var url = require('url');
 var https = require('https');
+var proxyAgent = require('https-proxy-agent');
+var querystring = require('querystring');
+var url = require('url');
 
 
 var ExchangeRates = function ExchangeRates(options) {
@@ -20,7 +21,7 @@ ExchangeRates.prototype._getResponse = function(endpoint, callback) {
       Authorization: 'Bearer ' + this.api_key,
       'User-Agent': 'oanda-exchange-rates.js/0.0.0'
     },
-    path: '/rates/api/v1/' + endpoint + '.json'
+    path: '/rates/api/v1/' + endpoint
   };
 
   if (this.proxy) {
@@ -78,7 +79,7 @@ ExchangeRates.prototype._getResponse = function(endpoint, callback) {
 };
 
 ExchangeRates.prototype.getCurrencies = function(callback) {
-  this._getResponse('currencies', function(res) {
+  this._getResponse('currencies.json', function(res) {
     if (res.success) {
       var currencies = {};
 
@@ -98,7 +99,23 @@ ExchangeRates.prototype.getCurrencies = function(callback) {
 };
 
 ExchangeRates.prototype.getRemainingQuotes = function(callback) {
-  this._getResponse('remaining_quotes', callback);
+  this._getResponse('remaining_quotes.json', callback);
+};
+
+ExchangeRates.prototype.getRates = function(options, callback) {
+  var hasOptions = typeof(options) !== 'string';
+  var endpoint = 'rates/' + (hasOptions ? options.base : options) + '.json';
+
+  if (hasOptions) {
+    delete options.base;
+
+    var query = querystring.stringify(options);
+    if (query) {
+      endpoint += '?' + query;
+    }
+  }
+
+  this._getResponse(endpoint, callback);
 };
 
 module.exports = ExchangeRates;
