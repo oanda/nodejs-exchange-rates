@@ -7,6 +7,7 @@ This module provides a simple wrapper around the [OANDA Exchange Rates API](http
   - [Class: OANDAExchangeRates](#oanda_exchange_rates)
     - [new OANDAExchangeRates(options)](#constructor)
     - [client.getCurrencies(\[callback\])](#get_currencies)
+    - [client.getRemainingQuotes(\[callback\])](#get_remaining_quotes)
 - [Tests](#tests)
 - [Author](#author)
 - [Copyright and License](#copyright_license)
@@ -28,7 +29,15 @@ var client = new api({
 
 client.getCurrencies(function(response) {
     if (response.success) {
-        console.log(response.data['USD']);
+        console.log('USD=', response.data['USD']);
+    } else {
+        console.log('error(', response.errorCode, ')', response.errorMessage);
+    }
+});
+
+client.getRemainingQuotes(function(response) {
+    if (response.success) {
+        console.log('Can call getRates()', response.data.remaining_quotes, 'time(s)');
     } else {
         console.log('error(', response.errorCode, ')', response.errorMessage);
     }
@@ -37,7 +46,8 @@ client.getCurrencies(function(response) {
 
 If successful, will output:
 
-    US Dollar
+    USD=US Dollar
+    Can call getRates() 100000 time(s)
 
 If not, for example:
 
@@ -78,6 +88,22 @@ The Javascript object returned by `response.data` will look something like this:
     ...
 }
 ```
+
+#### <a name="get_remaining_quotes"></a>client.getRemainingQuotes(\[callback\])
+
+Returns the `/v1/remaining_quotes.json` endpoint; the number of quote requests available in the current billing period.
+
+Some plans are limited to a specific number of quotes per billing period. This endpoint can be used to determine how many quotes you have left.
+
+The Javascript object returned by `response.data` will look something like this:
+
+```Javascript
+{
+  remaining_quotes: 100000
+}
+```
+
+For plans that have no quote limits, remaining_quotes will equal "unlimited".
 
 ### <a name="response"></a>Class: Response
 

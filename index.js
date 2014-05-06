@@ -13,14 +13,14 @@ ExchangeRates.prototype._makeProxy = function(url) {
   return new proxyAgent(url)
 }
 
-ExchangeRates.prototype.getCurrencies = function(callback) {
+ExchangeRates.prototype._getResponse = function(endpoint, callback) {
   var options = {
     hostname: 'www.oanda.com',
     headers: {
       Authorization: 'Bearer ' + this.api_key,
       'User-Agent': 'oanda-exchange-rates.js/0.0.0'
     },
-    path: '/rates/api/v1/currencies.json'
+    path: '/rates/api/v1/' + endpoint + '.json'
   };
 
   if (this.proxy) {
@@ -43,52 +43,62 @@ ExchangeRates.prototype.getCurrencies = function(callback) {
       data += chunk;
     });
 
-    if (httpRes.statusCode === 200) {
-      // entire response data has arrived and ready to be parsed
-      httpRes.on('end', function() {
-        apiRes.raw = data;
-        currencyMap = {};
+    // entire response data has arrived and ready to be parsed
+    httpRes.on('end', function() {
+      apiRes.raw = data;
 
-        try {
-          currencyList = JSON.parse(data).currencies;
-          for (var i = 0; i < currencyList.length; i++) {
-            var currency = currencyList[i];
-            currencyMap[currency.code] = currency.description;
-          }
+      try {
+        apiRes.data = JSON.parse(data);
+        apiRes.success = (httpRes.statusCode === 200);
 
-          apiRes.data = currencyMap;
-          apiRes.success = true
-        } catch (e) {
-          apiRes.errorMessage = 'Unable to parse JSON data: ' + e.message;
-          apiRes.success = false;
+        // as a convenience, set the code and message in the response wrapper level
+        if (!apiRes.success) {
+          apiRes.errorCode = apiRes.data.code;
+          apiRes.errorMessage = apiRes.data.message;
         }
-
-        if (callback != null) {
-          callback(apiRes);
-        }
-      });
-    } else {
-      // entire error data has arrived and ready to be parsed
-      httpRes.on('end', function() {
-        apiRes.raw = data;
+      } catch (e) {
+        apiRes.errorMessage = 'Unable to parse JSON data: ' + e.message;
         apiRes.success = false;
+      }
 
-        try {
-          var error = JSON.parse(data);
+      if (callback != null) {
+        callback(apiRes);
+      }
+    });
 
-          apiRes.errorCode = error.code;
-          apiRes.errorMessage = error.message;
-        } catch (e) {
-          apiRes.errorMessage = 'Unable to parse JSON data: ' + e.message;
-        }
+    httpRes.on('error', function(e) {
+      if (callback != null) {
+        callback({
+          errorMessage: 'Problem with response: ' + e.message,
+          success: false
+        });
+      }
+    });
+  });
+};
 
-        if (callback != null) {
-          callback(apiRes);
-        }
-      });
+ExchangeRates.prototype.getCurrencies = function(callback) {
+  this._getResponse('currencies', function(res) {
+    if (res.success) {
+      var currencies = {};
+
+      // rearrange the currencies data from an array to a hash for easier use
+      for (var i = 0; i < res.data.currencies.length; i++) {
+        var currency = res.data.currencies[i];
+        currencies[currency.code] = currency.description;
+      }
+
+      res.data = currencies;
+    }
+
+    if (callback != null) {
+      callback(res);
     }
   });
 };
 
+ExchangeRates.prototype.getRemainingQuotes = function(callback) {
+  this._getResponse('remaining_quotes', callback);
+};
 
 module.exports = ExchangeRates;
