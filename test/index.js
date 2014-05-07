@@ -5,6 +5,27 @@ var https = require('https'),
 
 describe('OANDA Exchange Rates API', function() {
 
+  describe('constructor', function() {
+
+    describe('when the api key is missing', function() {
+      var exception = sinon.spy();
+      before(function() {
+        try {
+          var client = new OANDAExchangeRates();
+        } catch(e) {
+          exception(e);
+        }
+      });
+
+      it('throws an exception', function() {
+        exception.callCount.should.equal(1);
+      });
+      it('indicates the api key is missing', function() {
+        exception.firstCall.args[0].should.equal('No API key specified');
+      });
+    });
+  });
+
   var _createResponse = function(code, data, callback) {
     if (typeof(data) === 'string') {
       data = [ data ];
@@ -284,7 +305,9 @@ describe('OANDA Exchange Rates API', function() {
           // Arrange
           sinon.stub(https, 'get').yields(_createResponse(400,'{"code":8,"message":"Malformed Authorization header or invalid access token"}', callback));
 
-          var client = new OANDAExchangeRates();
+          var client = new OANDAExchangeRates({
+            api_key: 'expired key'
+          });
 
           // Act
           client._getResponse('endpoint', callback);
@@ -323,7 +346,9 @@ describe('OANDA Exchange Rates API', function() {
           // Arrange
           sinon.stub(https, 'get').yields(_createResponse(200,'{"foo":[{"bar":"fubar","fizz', callback));
 
-          var client = new OANDAExchangeRates();
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
 
           // Act
           client._getResponse('endpoint', callback);

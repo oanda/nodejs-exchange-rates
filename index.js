@@ -6,8 +6,12 @@ var url = require('url');
 
 var ExchangeRates = function ExchangeRates(options) {
   options = options || {};
-  this.api_key = options.api_key || '';
+  this.api_key = options.api_key;
   this.proxy = options.proxy || process.env.http_proxy;
+
+  if (!this.api_key) {
+    throw 'No API key specified';
+  }
 };
 
 ExchangeRates.prototype._makeProxy = function(url) {
