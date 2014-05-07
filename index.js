@@ -1,7 +1,17 @@
 var https = require('https');
+var path = require('path');
 var proxyAgent = require('https-proxy-agent');
 var querystring = require('querystring');
 var url = require('url');
+
+
+var name, version;
+require('fs').readFile(path.join(__dirname, 'package.json'), function(err, data) {
+  if (err) throw err;
+  data = JSON.parse(data);
+  name = data.name + '.js';
+  version = data.version;
+});
 
 
 var ExchangeRates = function ExchangeRates(options) {
@@ -23,7 +33,7 @@ ExchangeRates.prototype._getResponse = function(endpoint, callback) {
     hostname: 'www.oanda.com',
     headers: {
       Authorization: 'Bearer ' + this.api_key,
-      'User-Agent': 'oanda-exchange-rates.js/0.0.0'
+      'User-Agent': name + '/' + version
     },
     path: '/rates/api/v1/' + endpoint
   };

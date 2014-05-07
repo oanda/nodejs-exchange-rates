@@ -79,7 +79,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.0.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
       });
       it('sends a proxy agent as agent', function() {
         https.get.firstCall.args[0].should.have.property('agent');
@@ -129,7 +129,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.0.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
       });
       it('sends a proxy agent as agent', function() {
         https.get.firstCall.args[0].should.have.property('agent');
@@ -176,7 +176,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.0.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
       });
       it('does not send a HTTP proxy agent as agent', function() {
         https.get.firstCall.args[0].should.not.have.property('agent');
