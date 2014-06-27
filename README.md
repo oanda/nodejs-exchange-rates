@@ -6,7 +6,7 @@ This module provides a simple wrapper around the [OANDA Exchange Rates API](http
 - [Usage](#usage)
   - [Class: OANDAExchangeRates](#oanda_exchange_rates)
     - [new OANDAExchangeRates(options)](#constructor)
-    - [client.getCurrencies(\[callback\])](#get_currencies)
+    - [client.getCurrencies(\[data_set\], \[callback\])](#get_currencies)
     - [client.getRates(options, \[callback\])](#get_rates)
     - [client.getRemainingQuotes(\[callback\])](#get_remaining_quotes)
 - [Tests](#tests)
@@ -28,7 +28,7 @@ var client = new api({
     api_key: 'my_api_key'
 });
 
-client.getCurrencies(function(response) {
+client.getCurrencies('oanda', function(response) {
     if (response.success) {
         console.log('USD=', response.data['USD']);
     } else {
@@ -91,7 +91,7 @@ The constructor for the API wrapper. Other than `api_key` all other parameters a
 
       If you access the service behind a proxy, you can provide it. This sets the proxy for the underlying HTTP client. Similarly, if the `http_proxy` environment variable is set with the proxy, it will be use automatically.
 
-#### <a name="get_currencies"></a>client.getCurencies(\[callback\])
+#### <a name="get_currencies"></a>client.getCurencies(\[data_set\], \[callback\])
 
 Returns the `/v1/currencies.json` endpoint; a hash of valid currency codes.
 
@@ -107,6 +107,13 @@ The Javascript object returned by `response.data` will look something like this:
     ...
 }
 ```
+
+- data_set:
+
+      Indicates which of the OANDA currency list or the European Central Bank currency list to query. Valid values are 'oanda' or 'ecb'
+
+      **DEFAULT:** 'oanda'
+
 
 #### <a name="get_rates"></a>client.getRates(options, \[callback\])
 
@@ -182,6 +189,12 @@ The Javascript object returned by `response.data` will look something like this 
 
           quote: 'EUR'
           quote: [ 'EUR', 'GBP', 'CHF' ]
+
+  - data_set
+
+      Indicates which of the OANDA rate or the European Central Bank rate to query. Valid values are 'oanda' or 'ecb'
+
+      **DEFAULT:** 'oanda'
 
   - decimal_places
 
@@ -293,3 +306,6 @@ This object is returned by any API method called in [OANDAExchangeRates](#oanda_
 This software is copyright (c) 2014 by OANDA Corporation and distributed under MIT License.
 
 ## <a name="release_history"></a>Release History
+
+  - 0.2.0 - June 27 - Add 'data_set' parameter to getCurrencies() and getRates()
+  - 0.1.0 - May 7 - Initial release

@@ -79,7 +79,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.2.0');
       });
       it('sends a proxy agent as agent', function() {
         https.get.firstCall.args[0].should.have.property('agent');
@@ -129,7 +129,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.2.0');
       });
       it('sends a proxy agent as agent', function() {
         https.get.firstCall.args[0].should.have.property('agent');
@@ -176,7 +176,7 @@ describe('OANDA Exchange Rates API', function() {
         https.get.firstCall.args[0].headers.should.have.property('Authorization', 'Bearer 42');
       });
       it('sends the module name and version as User-Agent header', function() {
-        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.1.0');
+        https.get.firstCall.args[0].headers.should.have.property('User-Agent', 'oanda-exchange-rates.js/0.2.0');
       });
       it('does not send a HTTP proxy agent as agent', function() {
         https.get.firstCall.args[0].should.not.have.property('agent');
@@ -385,48 +385,98 @@ describe('OANDA Exchange Rates API', function() {
   describe('getCurrencies', function() {
     var callback = sinon.spy();
 
-    before(function() {
-        // Arrange
-        sinon.stub(https, 'get').yields(
-          _createResponse(200, '{"currencies":[{"code":"ADF","description":"Andorran Franc"}]}', callback)
-        );
+    describe('when data_set parameter is omitted', function() {
+      before(function() {
+          // Arrange
+          sinon.spy(https, 'get')
 
-        var client = new OANDAExchangeRates({
-          api_key: '42'
-        });
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
 
-        // Act
-        client.getCurrencies(callback);
-    });
+          // Act
+          client.getCurrencies();
+      });
 
-    // Assert
-    it('calls our callback', function() {
-      callback.callCount.should.equal(1);
-    });
-    it('passes a success flag back to our callback', function() {
-      callback.firstCall.args[0].should.have.property('success', true);
-    });
-    it('passes the HTTP status code back to our callback', function() {
-      callback.firstCall.args[0].should.have.property('statusCode', 200);
-    });
-    it('passes a hash of currencies code/description back to our callback', function() {
-      callback.firstCall.args[0].data.should.be.eql({
-        ADF: 'Andorran Franc'
+      // Assert
+      it('does not send any query string', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/currencies.json');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
       });
     });
-    it('passes the raw serialized JSON back to our callback', function() {
-      callback.firstCall.args[0].should.have.property('raw', '{"currencies":[{"code":"ADF","description":"Andorran Franc"}]}');
-    });
-    it('does not pass any error code back to our callback', function() {
-      callback.firstCall.args[0].should.not.have.property('errorCode');
-    });
-    it('does not pass any error message back to our callback', function() {
-      callback.firstCall.args[0].should.not.have.property('errorMessage');
+
+    describe('when data_set parameter is passed', function() {
+      before(function() {
+          // Arrange
+          sinon.spy(https, 'get')
+
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
+
+          // Act
+          client.getCurrencies('ecb');
+      });
+
+      // Assert
+      it('sends the data_set value in the query string', function() {
+        https.get.firstCall.args[0].should.have.property('path', '/rates/api/v1/currencies.json?data_set=ecb');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+      });
     });
 
-    // Restore
-    after(function() {
-      https.get.restore();
+    describe('when the response comes back', function() {
+      before(function() {
+          // Arrange
+          sinon.stub(https, 'get').yields(
+            _createResponse(200, '{"currencies":[{"code":"ADF","description":"Andorran Franc"}]}', callback)
+          );
+
+          var client = new OANDAExchangeRates({
+            api_key: '42'
+          });
+
+          // Act
+          client.getCurrencies(callback);
+      });
+
+      // Assert
+      it('calls our callback', function() {
+        callback.callCount.should.equal(1);
+      });
+      it('passes a success flag back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('success', true);
+      });
+      it('passes the HTTP status code back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('statusCode', 200);
+      });
+      it('passes a hash of currencies code/description back to our callback', function() {
+        callback.firstCall.args[0].data.should.be.eql({
+          ADF: 'Andorran Franc'
+        });
+      });
+      it('passes the raw serialized JSON back to our callback', function() {
+        callback.firstCall.args[0].should.have.property('raw', '{"currencies":[{"code":"ADF","description":"Andorran Franc"}]}');
+      });
+      it('does not pass any error code back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorCode');
+      });
+      it('does not pass any error message back to our callback', function() {
+        callback.firstCall.args[0].should.not.have.property('errorMessage');
+      });
+
+      // Restore
+      after(function() {
+        https.get.restore();
+      });
     });
   });
 

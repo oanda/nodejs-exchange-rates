@@ -92,8 +92,16 @@ ExchangeRates.prototype._getResponse = function(endpoint, callback) {
   });
 };
 
-ExchangeRates.prototype.getCurrencies = function(callback) {
-  this._getResponse('currencies.json', function(res) {
+ExchangeRates.prototype.getCurrencies = function(data_set, callback) {
+  var endpoint = 'currencies.json';
+
+  if (typeof(data_set) === 'function') {
+    callback = data_set;
+  } else if (data_set !== undefined) {
+    endpoint += '?' + querystring.stringify({'data_set':data_set});
+  }
+
+  this._getResponse(endpoint, function(res) {
     if (res.success) {
       var currencies = {};
 

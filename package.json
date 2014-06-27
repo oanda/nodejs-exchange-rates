@@ -1,6 +1,6 @@
 {
   "name": "oanda-exchange-rates",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OANDA Exchange Rates API client module for nodejs",
   "homepage": "http://github.com/oanda/nodejs-exchange-rates",
   "main": "index.js",
