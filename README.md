@@ -1,3 +1,5 @@
+## NOTE: this repository is deprecated in favour of generating your own API client code using our OpenAPI specification, please refer to the documentation at https://developer.oanda.com/exchange-rates-api/#sample-code
+
 ## OANDA Exchange Rates API client module for NodeJS
 
 This module provides a simple wrapper around the [OANDA Exchange Rates API](http://www.oanda.com/rates) using NodeJS. Go to the [API documentation page](http://developer.oanda.com/exchange-rates-api/) for a full reference of all the methods. This service requires you to [sign up](http://www.oanda.com/rates/#pricing) for a trial or paying subscription to obtain an API key.
